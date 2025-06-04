@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.25-alpine
+        image: ghcr.io/iracic82/my-nginx-demo:latest
         ports:
         - containerPort: 80
