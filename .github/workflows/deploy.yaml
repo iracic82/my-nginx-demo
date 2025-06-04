@@ -26,4 +26,4 @@ jobs:
         git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
         git add k8s/deployment.yaml
         git commit -m "CI: update nginx image tag" || echo "No changes"
-        git push
+        git push origin main
