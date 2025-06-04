@@ -23,7 +23,7 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "ci@github.com"
-        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
+        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/iracic82/my-nginx-demo.git
         
         echo "🧪 Confirming remote config:"
         git remote -v
