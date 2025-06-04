@@ -1,47 +1,47 @@
+---
 name: GitOps CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   update-manifests:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Lint Kubernetes YAML
-      uses: ibiqlik/action-yamllint@v3
-      with:
-        config_file: .yamllint.yml    
-    - name: Bump version (timestamp-based)
-      id: bump
-      run: |
-        VERSION=$(date +'%Y%m%d%H%M')
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
-    - name: Docker Build & Push
-      run: |
-        docker build -t ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }} .
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-        docker push ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }}
-    - name: Update deployment.yaml with new image tag
-      run: |
-        echo "Patching nginx image in deployment.yaml..."
-        #sed -i 's|nginx:1.25|nginx:1.25-alpine|' k8s/deployment.yaml
-        sed -i "s|image:.*|image: ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }}|" k8s/deployment.yaml
-    - name: Commit and push manifest changes
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "ci@github.com"
-        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/iracic82/my-nginx-demo.git
-        
-        echo "🧪 Confirming remote config:"
-        git remote -v
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        git add k8s/deployment.yaml
-        git commit -m "CI: update nginx image tag" || echo "No changes"
-        git push origin main
+      - name: Lint Kubernetes YAML
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint.yml
+
+      - name: Bump version (timestamp-based)
+        id: bump
+        run: |
+          VERSION=$(date +'%Y%m%d%H%M')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Docker Build & Push
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }} .
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }}
+
+      - name: Update deployment.yaml with new image tag
+        run: |
+          sed -i "s|image:.*|image: ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }}|" k8s/deployment.yaml
+
+      - name: Commit and push manifest changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "ci@github.com"
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/iracic82/my-nginx-demo.git
+          git add k8s/deployment.yaml
+          git commit -m "CI: update nginx image tag" || echo "No changes"
+          git push origin main
