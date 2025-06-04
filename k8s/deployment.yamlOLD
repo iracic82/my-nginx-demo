@@ -14,7 +14,7 @@ spec:
         app: nginx
     spec:
       containers:
-        - name: nginx
+      - name: nginx
           image: ghcr.io/iracic82/my-nginx-demo:latest
-          ports:
-            - containerPort: 80
+        ports:
+        - containerPort: 80
