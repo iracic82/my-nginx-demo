@@ -1,0 +1,26 @@
+name: GitOps CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  update-manifests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Update deployment.yaml with new image tag
+      run: |
+        echo "Patching nginx image in deployment.yaml..."
+        sed -i 's|nginx:1.25|nginx:1.25-alpine|' k8s/deployment.yaml
+
+    - name: Commit and push manifest changes
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "ci@github.com"
+        git add k8s/deployment.yaml
+        git commit -m "CI: update nginx image tag" || echo "No changes"
+        git push
