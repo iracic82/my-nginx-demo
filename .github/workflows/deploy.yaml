@@ -11,12 +11,26 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
+    
+    - name: Lint Kubernetes YAML
+      uses: ibiqlik/action-yamllint@v3
+      with:
+        config_file: .yamllint.yml    
+    - name: Bump version (timestamp-based)
+      id: bump
+      run: |
+        VERSION=$(date +'%Y%m%d%H%M')
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+    - name: Docker Build & Push
+      run: |
+        docker build -t ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }} .
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }}
     - name: Update deployment.yaml with new image tag
       run: |
         echo "Patching nginx image in deployment.yaml..."
-        sed -i 's|nginx:1.25|nginx:1.25-alpine|' k8s/deployment.yaml
-
+        #sed -i 's|nginx:1.25|nginx:1.25-alpine|' k8s/deployment.yaml
+        sed -i "s|image:.*|image: ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.version }}|" k8s/deployment.yaml
     - name: Commit and push manifest changes
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
