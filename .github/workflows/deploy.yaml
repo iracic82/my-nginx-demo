@@ -18,9 +18,12 @@ jobs:
         sed -i 's|nginx:1.25|nginx:1.25-alpine|' k8s/deployment.yaml
 
     - name: Commit and push manifest changes
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "ci@github.com"
+        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
         git add k8s/deployment.yaml
         git commit -m "CI: update nginx image tag" || echo "No changes"
         git push
