@@ -24,6 +24,10 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "ci@github.com"
         git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
+        
+        echo "🧪 Confirming remote config:"
+        git remote -v
+
         git add k8s/deployment.yaml
         git commit -m "CI: update nginx image tag" || echo "No changes"
         git push origin main
